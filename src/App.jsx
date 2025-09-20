@@ -9,7 +9,7 @@ const FreeGamesList = () => {
     const [error, setError] = useState(null);
 
     // const API_URL = '/api/freeGamesPromotions?locale=en-US&country=US&allowCountries=US';
-    const API_URL = 'https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US';
+    const API_URL = 'https://api.allorigins.win/raw?url=https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US';
 
     useEffect(() => {
         const fetchFreeGames = async () => {
