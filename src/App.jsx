@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { CircleLoader } from 'react-spinners'; // Assuming you installed this
+import { CircleLoader } from 'react-spinners';
 import './App.css';
 
 const FreeGamesList = () => {
-    const [games, setGames] = useState([]);
+    const [currentGames, setCurrentGames] = useState([]);
+    const [upcomingGames, setUpcomingGames] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -19,19 +20,14 @@ const FreeGamesList = () => {
                 const data = await response.json();
                 
                 const gameElements = data.data.Catalog.searchStore.elements;
-
                 const now = new Date();
-                const currentFreeGames = gameElements.filter(game => {
-                    if (game.promotions && game.promotions.promotionalOffers && game.promotions.promotionalOffers.length > 0) {
-                        const offer = game.promotions.promotionalOffers[0].promotionalOffers[0];
-                        return new Date(offer.startDate) <= now && now <= new Date(offer.endDate);
-                    }
-                    return false;
-                });
-                
-                const formattedGames = currentFreeGames.map(game => {
+
+                const current = [];
+                const upcoming = [];
+
+                const formatGame = (game) => {
                     const thumbnailImage = game.keyImages.find(img => img.type === 'Thumbnail');
-                    const slug = game.productSlug || (game.catalogNs.mappings[0] && game.catalogNs.mappings[0].pageSlug);
+                    const slug = game.productSlug || (game.catalogNs.mappings && game.catalogNs.mappings[0] && game.catalogNs.mappings[0].pageSlug);
                     let storeLink = 'https://www.epicgames.com/store/en-US/free-games';
                     if (slug) {
                         storeLink = `https://www.epicgames.com/store/en-US/p/${slug}`;
@@ -43,14 +39,44 @@ const FreeGamesList = () => {
                         storeLink: storeLink,
                         thumbnail: thumbnailImage ? thumbnailImage.url : '',
                     };
+                };
+
+                gameElements.forEach(game => {
+                    const promotions = game.promotions;
+
+                    // **CORRECTED LOGIC FOR CURRENT GAMES**
+                    // Check the standard promotionalOffers array for active promotions.
+                    if (promotions && promotions.promotionalOffers && promotions.promotionalOffers.length > 0) {
+                        const offer = promotions.promotionalOffers[0].promotionalOffers[0];
+                        const startDate = new Date(offer.startDate);
+                        const endDate = new Date(offer.endDate);
+
+                        if (startDate <= now && now <= endDate) {
+                            current.push(formatGame(game));
+                        }
+                    }
+
+                    // **CORRECTED LOGIC FOR UPCOMING GAMES**
+                    // Check the dedicated upcomingPromotionalOffers array.
+                    if (promotions && promotions.upcomingPromotionalOffers && promotions.upcomingPromotionalOffers.length > 0) {
+                        const upcomingOffers = promotions.upcomingPromotionalOffers[0].promotionalOffers;
+                        
+                        // Find the specific offer that is free (discount percentage is 0).
+                        const freeUpcomingOffer = upcomingOffers.find(offer => offer.discountSetting.discountPercentage === 0);
+                        
+                        if (freeUpcomingOffer) {
+                            upcoming.push(formatGame(game));
+                        }
+                    }
                 });
 
-                setGames(formattedGames);
+                setCurrentGames(current);
+                setUpcomingGames(upcoming);
+
             } catch (e) {
                 setError(e.message);
                 console.error("Failed to fetch free games:", e);
             } finally {
-                // Use a small timeout to make the loading feel smoother
                 setTimeout(() => setLoading(false), 500); 
             }
         };
@@ -58,16 +84,39 @@ const FreeGamesList = () => {
         fetchFreeGames();
     }, []);
 
-    // We no longer need the separate loading return here.
+    const renderGameGrid = (games, isUpcoming = false) => {
+        if (games.length > 0) {
+            return (
+                <div className="games-grid">
+                    {games.map(game => (
+                        <div key={game.id} className="game-card">
+                            <a href={game.storeLink} target="_blank" rel="noopener noreferrer">
+                                <div className="thumbnail-container">
+                                    <img src={game.thumbnail} alt={game.title} className="game-thumbnail" />
+                                </div>
+                                <div className="game-info">
+                                    <h3>{game.title}</h3>
+                                    <p>{game.description}</p>
+                                </div>
+                            </a>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+        return (
+            <div className="status-message">
+                {isUpcoming ? "Next week's games haven't been announced yet." : "No free games found this week. Check back later!"}
+            </div>
+        );
+    };
 
     return (
         <div className="app-container">
             <header>
-                <h1>This Week's Free Games on Epic</h1>
+                <h1>Epic's Free Games</h1>
             </header>
             <main>
-                {/* --- THIS IS THE KEY CHANGE --- */}
-                {/* We use a ternary operator to switch between Loader and Content */}
                 {loading ? (
                     <div className="loader-container">
                         <CircleLoader color="#007bff" size={80} />
@@ -75,25 +124,13 @@ const FreeGamesList = () => {
                 ) : error ? (
                     <div className="status-message">Error fetching games: {error} 😥</div>
                 ) : (
-                    <div className="games-grid">
-                        {games.length > 0 ? (
-                            games.map(game => (
-                                <div key={game.id} className="game-card">
-                                    <a href={game.storeLink} target="_blank" rel="noopener noreferrer">
-                                        <div className="thumbnail-container">
-                                            <img src={game.thumbnail} alt={game.title} className="game-thumbnail" />
-                                        </div>
-                                        <div className="game-info">
-                                            <h3>{game.title}</h3>
-                                            <p>{game.description}</p>
-                                        </div>
-                                    </a>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="status-message">No free games found this week. Check back later!</div>
-                        )}
-                    </div>
+                    <>
+                        <h2 className="section-title">Available Now</h2>
+                        {renderGameGrid(currentGames)}
+                        
+                        <h2 className="section-title">Coming Soon</h2>
+                        {renderGameGrid(upcomingGames, true)}
+                    </>
                 )}
             </main>
         </div>
