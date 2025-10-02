@@ -28,7 +28,7 @@ const FreeGamesList = () => {
                 const current = [];
                 const upcoming = [];
 
-                const formatGame = (game) => {
+                const formatGame = (game, startDate = null, endDate = null) => {
                     const thumbnailImage = game.keyImages.find(img => img.type === 'Thumbnail');
                     const slug = game.productSlug || (game.catalogNs.mappings && game.catalogNs.mappings[0] && game.catalogNs.mappings[0].pageSlug);
                     let storeLink = 'https://www.epicgames.com/store/en-US/free-games';
@@ -41,6 +41,9 @@ const FreeGamesList = () => {
                         description: game.description,
                         storeLink: storeLink,
                         thumbnail: thumbnailImage ? thumbnailImage.url : '',
+                        // store ISO strings for portability; GameCard will format to human-friendly text
+                        startDate: startDate ? new Date(startDate).toISOString() : null,
+                        endDate: endDate ? new Date(endDate).toISOString() : null,
                     };
                 };
 
@@ -52,11 +55,12 @@ const FreeGamesList = () => {
                         const offer = promotions.promotionalOffers[0].promotionalOffers[0];
 
                         if (offer.discountSetting.discountPercentage === 0) {
-                            const startDate = new Date(offer.startDate);
-                            const endDate = new Date(offer.endDate);
-    
-                            if (startDate <= now && now <= endDate) {
-                                current.push(formatGame(game));
+                            const startDate = offer.startDate;
+                            const endDate = offer.endDate;
+
+                            // only include those active now in current
+                            if (new Date(startDate) <= now && now <= new Date(endDate)) {
+                                current.push(formatGame(game, startDate, endDate));
                             }
                         }
                     }
@@ -69,7 +73,8 @@ const FreeGamesList = () => {
                         const freeUpcomingOffer = upcomingOffers.find(offer => offer.discountSetting.discountPercentage === 0);
                         
                         if (freeUpcomingOffer) {
-                            upcoming.push(formatGame(game));
+                            // upcoming offers have start/end on the offer object
+                            upcoming.push(formatGame(game, freeUpcomingOffer.startDate, freeUpcomingOffer.endDate));
                         }
                     }
                 });
