@@ -1,0 +1,13 @@
+/* --- Games Grid Layout --- */
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+/* --- Loading & Error States --- */
+.status-message {
+    text-align: center;
+    font-size: 1.5rem;
+    color: #888;
+}

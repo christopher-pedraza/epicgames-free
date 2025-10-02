@@ -1,0 +1,8 @@
+/* --- ADDED --- */
+/* A dedicated container to center the loader */
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh; /* Give it height to prevent layout jump */
+}
