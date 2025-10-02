@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { CircleLoader } from 'react-spinners';
+import Header from './components/Header';
+import LoadingSpinner from './components/LoadingSpinner';
+import GameGrid from './components/GameGrid';
 import './App.css';
 
 const FreeGamesList = () => {
@@ -86,52 +88,21 @@ const FreeGamesList = () => {
         fetchFreeGames();
     }, []);
 
-    const renderGameGrid = (games, isUpcoming = false) => {
-        if (games.length > 0) {
-            return (
-                <div className="games-grid">
-                    {games.map(game => (
-                        <div key={game.id} className="game-card">
-                            <a href={game.storeLink} target="_blank" rel="noopener noreferrer">
-                                <div className="thumbnail-container">
-                                    <img src={game.thumbnail} alt={game.title} className="game-thumbnail" />
-                                </div>
-                                <div className="game-info">
-                                    <h3>{game.title}</h3>
-                                    <p>{game.description}</p>
-                                </div>
-                            </a>
-                        </div>
-                    ))}
-                </div>
-            );
-        }
-        return (
-            <div className="status-message">
-                {isUpcoming ? "Next week's games haven't been announced yet." : "No free games found this week. Check back later!"}
-            </div>
-        );
-    };
-
     return (
         <div className="app-container">
-            <header>
-                <h1>Epic's Free Games</h1>
-            </header>
+            <Header />
             <main>
                 {loading ? (
-                    <div className="loader-container">
-                        <CircleLoader color="#007bff" size={80} />
-                    </div>
+                    <LoadingSpinner />
                 ) : error ? (
                     <div className="status-message">Error fetching games: {error} 😥</div>
                 ) : (
                     <>
                         <h2 className="section-title">Available Now</h2>
-                        {renderGameGrid(currentGames)}
+                        <GameGrid games={currentGames} />
                         
                         <h2 className="section-title">Coming Soon</h2>
-                        {renderGameGrid(upcomingGames, true)}
+                        <GameGrid games={upcomingGames} isUpcoming={true} />
                     </>
                 )}
             </main>
