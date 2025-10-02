@@ -1,5 +1,4 @@
-import React from 'react';
-import GameCard from './GameCard';
+import GameCard from '../GameCard';
 import './GameGrid.css';
 
 const GameGrid = ({ games, isUpcoming = false }) => {
