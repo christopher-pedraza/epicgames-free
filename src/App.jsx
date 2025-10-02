@@ -45,19 +45,23 @@ const FreeGamesList = () => {
                 gameElements.forEach(game => {
                     const promotions = game.promotions;
 
-                    // **CORRECTED LOGIC FOR CURRENT GAMES**
                     // Check the standard promotionalOffers array for active promotions.
                     if (promotions && promotions.promotionalOffers && promotions.promotionalOffers.length > 0) {
                         const offer = promotions.promotionalOffers[0].promotionalOffers[0];
-                        const startDate = new Date(offer.startDate);
-                        const endDate = new Date(offer.endDate);
 
-                        if (startDate <= now && now <= endDate) {
-                            current.push(formatGame(game));
+                        // Find the specific offer that is free (discount percentage is 0).
+                        const freeOffer = offer.find(offer => offer.discountSetting.discountPercentage === 0);
+
+                        if (freeOffer) {
+                            const startDate = new Date(offer.startDate);
+                            const endDate = new Date(offer.endDate);
+    
+                            if (startDate <= now && now <= endDate) {
+                                current.push(formatGame(game));
+                            }
                         }
                     }
 
-                    // **CORRECTED LOGIC FOR UPCOMING GAMES**
                     // Check the dedicated upcomingPromotionalOffers array.
                     if (promotions && promotions.upcomingPromotionalOffers && promotions.upcomingPromotionalOffers.length > 0) {
                         const upcomingOffers = promotions.upcomingPromotionalOffers[0].promotionalOffers;
