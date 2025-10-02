@@ -49,10 +49,7 @@ const FreeGamesList = () => {
                     if (promotions && promotions.promotionalOffers && promotions.promotionalOffers.length > 0) {
                         const offer = promotions.promotionalOffers[0].promotionalOffers[0];
 
-                        // Find the specific offer that is free (discount percentage is 0).
-                        const freeOffer = offer.find(offer => offer.discountSetting.discountPercentage === 0);
-
-                        if (freeOffer) {
+                        if (offer.discountSetting.discountPercentage === 0) {
                             const startDate = new Date(offer.startDate);
                             const endDate = new Date(offer.endDate);
     
